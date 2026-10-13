@@ -1,7 +1,10 @@
-# GridCraft Python Tools
+# Python Tools for GridCraft and WordCraft
 
-A [GridCraft](https://github.com/storytold/gridcraft) plugin written in Python, using only the
-standard library. It's a test of GridCraft's plugin system: custom functions, commands, a ribbon
+An add-in for [GridCraft](https://github.com/storytold/gridcraft) and
+[WordCraft](https://github.com/storytold/wordcraft) written in Python, using only the standard
+library. One `plugin.json` serves both apps: `apps` names them, `ui` is GridCraft's ribbon and
+menus, `uiFor.wordcraft` is WordCraft's, and `main.py` answers each app with its own commands
+(it reads `host.id` from `initialize`). It's a test of GridCraft's plugin system: custom functions, commands, a ribbon
 tab and right-click menu items, all from one `plugin.json` and one `main.py`.
 
 ## Install
@@ -33,7 +36,14 @@ gridcraft-cli --plugin ~/plugins/io.github.sirmmo.python eval '=PY.STATS(1,2,3,4
 | `PY.REGEX(text, pattern, [group])` | The first match of a Python regular expression (or a group of it); `#N/A` when nothing matches |
 | `PY.SPLIT(text, [separator])` | The parts of the text, spilled across a row (default: split on whitespace) |
 
-## Commands
+## In WordCraft
+
+On the **Python** tab, in **Review › Python** and in the right-click menu: **Title Case** and
+**Trim Spaces** rewrite the selected text (one undoable step), and **Text Statistics** shows the
+words, sentences and average word length of the selection (or the paragraph) in the status bar.
+Install it from **File › Options › Add-ins** with the same address.
+
+## Commands (GridCraft)
 
 On the **Python** tab, in **Data › Python** and in the right-click menus:
 

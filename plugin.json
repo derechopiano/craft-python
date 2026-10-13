@@ -1,44 +1,208 @@
 {
   "id": "io.github.sirmmo.python",
   "name": "Python Tools",
-  "version": "0.1.0",
-  "description": "A GridCraft plugin written in Python: statistics, regular expressions and text clean-up. Needs python3.",
+  "version": "0.2.0",
+  "description": "A GridCraft and WordCraft add-in written in Python: statistics, regular expressions and text clean-up. Needs python3.",
   "author": "Marco Montanari",
   "homepage": "https://github.com/sirmmo/gridcraft-python-plugin",
-  "run": {"command": "python3", "args": ["main.py"]},
+  "apps": [
+    "gridcraft",
+    "wordcraft"
+  ],
+  "run": {
+    "command": "python3",
+    "args": [
+      "main.py"
+    ]
+  },
   "functions": [
-    {"name": "PY.VERSION", "signature": "PY.VERSION()", "description": "The plugin and Python versions", "minArgs": 0, "maxArgs": 0},
-    {"name": "PY.TWICE", "signature": "PY.TWICE(value)", "description": "Doubles a number, or each number of a range", "minArgs": 1, "maxArgs": 1},
-    {"name": "PY.MEDIAN", "signature": "PY.MEDIAN(number1, [number2], ...)", "description": "Median, computed by Python's statistics module", "minArgs": 1, "maxArgs": 255},
-    {"name": "PY.STATS", "signature": "PY.STATS(number1, [number2], ...)", "description": "A spilled table: count, sum, mean, median, min, max, stdev", "minArgs": 1, "maxArgs": 255},
-    {"name": "PY.REGEX", "signature": "PY.REGEX(text, pattern, [group])", "description": "The first match of a Python regular expression, or #N/A", "minArgs": 2, "maxArgs": 3},
-    {"name": "PY.SPLIT", "signature": "PY.SPLIT(text, [separator])", "description": "Splits text into a spilled row (default: on whitespace)", "minArgs": 1, "maxArgs": 2}
+    {
+      "name": "PY.VERSION",
+      "signature": "PY.VERSION()",
+      "description": "The plugin and Python versions",
+      "minArgs": 0,
+      "maxArgs": 0
+    },
+    {
+      "name": "PY.TWICE",
+      "signature": "PY.TWICE(value)",
+      "description": "Doubles a number, or each number of a range",
+      "minArgs": 1,
+      "maxArgs": 1
+    },
+    {
+      "name": "PY.MEDIAN",
+      "signature": "PY.MEDIAN(number1, [number2], ...)",
+      "description": "Median, computed by Python's statistics module",
+      "minArgs": 1,
+      "maxArgs": 255
+    },
+    {
+      "name": "PY.STATS",
+      "signature": "PY.STATS(number1, [number2], ...)",
+      "description": "A spilled table: count, sum, mean, median, min, max, stdev",
+      "minArgs": 1,
+      "maxArgs": 255
+    },
+    {
+      "name": "PY.REGEX",
+      "signature": "PY.REGEX(text, pattern, [group])",
+      "description": "The first match of a Python regular expression, or #N/A",
+      "minArgs": 2,
+      "maxArgs": 3
+    },
+    {
+      "name": "PY.SPLIT",
+      "signature": "PY.SPLIT(text, [separator])",
+      "description": "Splits text into a spilled row (default: on whitespace)",
+      "minArgs": 1,
+      "maxArgs": 2
+    }
   ],
   "commands": [
-    {"id": "titleCase", "label": "Title Case", "description": "Title-cases the text in the selection"},
-    {"id": "trim", "label": "Trim Spaces", "description": "Removes extra spaces from the text in the selection"},
-    {"id": "statsTable", "label": "Statistics", "description": "Writes a statistics table to the right of the selection"},
-    {"id": "fillFibonacci", "label": "Fibonacci", "description": "Fills the Fibonacci numbers down from the active cell", "params": "{count?: 1-1000, default 10}"}
+    {
+      "id": "titleCase",
+      "label": "Title Case",
+      "description": "Title-cases the text in the selection"
+    },
+    {
+      "id": "trim",
+      "label": "Trim Spaces",
+      "description": "Removes extra spaces from the text in the selection"
+    },
+    {
+      "id": "statsTable",
+      "label": "Statistics",
+      "description": "Writes a statistics table to the right of the selection"
+    },
+    {
+      "id": "fillFibonacci",
+      "label": "Fibonacci",
+      "description": "Fills the Fibonacci numbers down from the active cell",
+      "params": "{count?: 1-1000, default 10}"
+    },
+    {
+      "id": "textStats",
+      "label": "Text Statistics",
+      "description": "Words, sentences and average word length of the selection (or the paragraph)"
+    }
   ],
   "ui": {
     "ribbon": [
-      {"tab": "Python", "group": "Text", "buttons": [
-        {"command": "titleCase", "icon": "format"},
-        {"command": "trim", "icon": "pen"}
-      ]},
-      {"tab": "Python", "group": "Numbers", "buttons": [
-        {"command": "statsTable", "icon": "chartBar"},
-        {"command": "fillFibonacci", "label": "Fibonacci 10", "size": "small", "icon": "sum"},
-        {"command": "fillFibonacci", "label": "Fibonacci 30", "size": "small", "icon": "sum", "params": {"count": 30}}
-      ]},
-      {"tab": "Data", "group": "Python", "buttons": [
-        {"command": "statsTable", "icon": "chartBar"}
-      ]}
+      {
+        "tab": "Python",
+        "group": "Text",
+        "buttons": [
+          {
+            "command": "titleCase",
+            "icon": "format"
+          },
+          {
+            "command": "trim",
+            "icon": "pen"
+          }
+        ]
+      },
+      {
+        "tab": "Python",
+        "group": "Numbers",
+        "buttons": [
+          {
+            "command": "statsTable",
+            "icon": "chartBar"
+          },
+          {
+            "command": "fillFibonacci",
+            "label": "Fibonacci 10",
+            "size": "small",
+            "icon": "sum"
+          },
+          {
+            "command": "fillFibonacci",
+            "label": "Fibonacci 30",
+            "size": "small",
+            "icon": "sum",
+            "params": {
+              "count": 30
+            }
+          }
+        ]
+      },
+      {
+        "tab": "Data",
+        "group": "Python",
+        "buttons": [
+          {
+            "command": "statsTable",
+            "icon": "chartBar"
+          }
+        ]
+      }
     ],
     "menus": [
-      {"menu": "cell", "command": "trim"},
-      {"menu": "cell", "command": "statsTable", "label": "Python Statistics"},
-      {"menu": "column", "command": "titleCase", "label": "Title Case Column"}
+      {
+        "menu": "cell",
+        "command": "trim"
+      },
+      {
+        "menu": "cell",
+        "command": "statsTable",
+        "label": "Python Statistics"
+      },
+      {
+        "menu": "column",
+        "command": "titleCase",
+        "label": "Title Case Column"
+      }
     ]
+  },
+  "uiFor": {
+    "wordcraft": {
+      "ribbon": [
+        {
+          "tab": "Python",
+          "group": "Text",
+          "buttons": [
+            {
+              "command": "titleCase",
+              "icon": "case"
+            },
+            {
+              "command": "trim",
+              "icon": "clear"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "Statistics",
+          "buttons": [
+            {
+              "command": "textStats",
+              "icon": "wordCount"
+            }
+          ]
+        },
+        {
+          "tab": "Review",
+          "group": "Python",
+          "buttons": [
+            {
+              "command": "textStats",
+              "icon": "wordCount"
+            }
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "command": "trim"
+        },
+        {
+          "command": "textStats",
+          "label": "Python Text Statistics"
+        }
+      ]
+    }
   }
 }

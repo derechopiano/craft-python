@@ -1,4 +1,4 @@
-"""GridCraft Python plugin: a test of the plugin protocol (version 1).
+"""GridCraft and WordCraft Python add-in: a test of the plugin protocol (version 1).
 
 GridCraft starts this program and talks to it over standard input and output:
 one JSON-RPC 2.0 message per line. See https://github.com/storytold/gridcraft/blob/main/docs/plugins.md
@@ -12,6 +12,10 @@ import statistics
 import sys
 
 PROTOCOL_VERSION = 1
+
+# The app that started us ("gridcraft", "wordcraft"), from `initialize`: the same commands work
+# on cells in GridCraft and on the selected text in WordCraft.
+HOST = "gridcraft"
 
 
 class PluginError(Exception):
@@ -68,7 +72,7 @@ def text(v):
 # --- functions --------------------------------------------------------------
 
 def fn_version(args):
-    return "GridCraft Python plugin 0.1.0 on Python " + sys.version.split()[0]
+    return "Python Tools 0.2.0 on Python " + sys.version.split()[0]
 
 
 def fn_twice(args):
@@ -153,6 +157,15 @@ def selection(context):
 
 
 def map_text(context, how, done):
+    if HOST == "wordcraft":
+        text = (context.get("selection") or {}).get("text") or ""
+        if not text:
+            raise PluginError("Select some text first.")
+        new = "\n".join(how(line) for line in text.split("\n"))
+        return {
+            "commands": [{"command": "text.insert", "params": {"text": new, "raw": True}}],
+            "message": "{} the selection".format(done),
+        }
     rng, values = selection(context)
     changed = 0
     out = []
@@ -232,7 +245,25 @@ def cmd_fill_fibonacci(params, context):
     }
 
 
+def cmd_text_stats(params, context):
+    """Words, sentences and word lengths of the selection, or of the paragraph (WordCraft)."""
+    text = (context.get("selection") or {}).get("text") or (context.get("paragraph") or {}).get("text") or ""
+    words = re.findall(r"[^\W\d_]+(?:['’-][^\W\d_]+)*", text)
+    if not words:
+        raise PluginError("There are no words here.")
+    sentences = max(1, len([s for s in re.split(r"[.!?]+", text) if s.strip()]))
+    lengths = [len(w) for w in words]
+    mean = statistics.mean(lengths)
+    return {
+        "message": "{} words, {} sentences, {:.1f} letters a word, {:.1f} words a sentence".format(
+            len(words), sentences, mean, len(words) / sentences),
+        "result": {"words": len(words), "sentences": sentences, "meanWordLength": mean,
+                   "medianWordLength": statistics.median(lengths), "longest": max(words, key=len)},
+    }
+
+
 COMMANDS = {
+    "textStats": cmd_text_stats,
     "titleCase": cmd_title_case,
     "trim": cmd_trim,
     "statsTable": cmd_stats_table,
@@ -244,6 +275,9 @@ COMMANDS = {
 
 def handle(method, params):
     if method == "initialize":
+        global HOST
+        host = params.get("host") or {}
+        HOST = str(host.get("id") or host.get("name") or "gridcraft").lower()
         return {"protocolVersion": PROTOCOL_VERSION}
     if method == "functions/call":
         fn = FUNCTIONS.get(str(params.get("name", "")).upper())
