@@ -1,0 +1,44 @@
+# Attaches craft-python-<version>.zip to the release of the pushed tag (v1.2.3). The zip names no
+# platform, so the apps' installers pick it on every platform (docs/plugins.md, "Publishing a
+# plugin on GitHub"); Python needs no build.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: python -m unittest discover -s tests
+      - name: Package
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          manifest=$(python -c 'import json; print(json.load(open("plugin.json"))["version"])')
+          if [ "$manifest" != "$version" ]; then
+            echo "plugin.json says $manifest, the tag $TAG" >&2
+            exit 1
+          fi
+          mkdir -p dist/craft-python/craftpython
+          cp plugin.json main.py README.md LICENSE dist/craft-python/
+          cp craftpython/*.py dist/craft-python/craftpython/
+          (cd dist && zip -qr "craft-python-$version.zip" craft-python)
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Python $TAG" --generate-notes
+          gh release upload "$TAG" dist/craft-python-*.zip --repo "$GITHUB_REPOSITORY" --clobber

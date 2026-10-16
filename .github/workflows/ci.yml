@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.8", "3.12"]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: plugin.json is JSON
+        run: python -m json.tool plugin.json >/dev/null
+      - name: The versions agree
+        run: |
+          python - <<'PY'
+          import json, re
+          manifest = json.load(open("plugin.json"))["version"]
+          code = re.search(r'VERSION = "([^"]+)"', open("craftpython/__init__.py").read()).group(1)
+          assert manifest == code, (manifest, code)
+          PY
+      - name: Compiles on this Python
+        run: python -m compileall -q main.py craftpython tests
+      - name: Tests (standard library only)
+        run: python -m unittest discover -s tests -v
