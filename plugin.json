@@ -1,13 +1,14 @@
 {
   "id": "io.github.sirmmo.python",
-  "name": "Python Tools",
-  "version": "0.2.0",
-  "description": "A GridCraft and WordCraft add-in written in Python: statistics, regular expressions and text clean-up. Needs python3.",
+  "name": "Python",
+  "version": "0.3.0",
+  "description": "Python scripting for GridCraft, WordCraft and DeckCraft: scripts and a console that edit the open document through `doc`, Python in formulas (PY.EVAL) and ready-made helpers. Standard library only; needs python3 (3.8 or later).",
   "author": "Marco Montanari",
   "homepage": "https://github.com/sirmmo/gridcraft-python-plugin",
   "apps": [
     "gridcraft",
-    "wordcraft"
+    "wordcraft",
+    "deckcraft"
   ],
   "run": {
     "command": "python3",
@@ -15,11 +16,36 @@
       "main.py"
     ]
   },
+  "requires": {
+    "apps": {
+      "gridcraft": ">=0.7.0",
+      "wordcraft": ">=0.7.0",
+      "deckcraft": ">=0.7.0"
+    },
+    "protocol": ">=1.2",
+    "features": [
+      "dialogs",
+      "document"
+    ]
+  },
+  "events": [
+    "documentOpened",
+    "documentSaved",
+    "documentClosed"
+  ],
   "functions": [
+    {
+      "name": "PY.EVAL",
+      "signature": "PY.EVAL(code, [x], [y], [z], ...)",
+      "description": "The value of Python code, with the arguments as x, y, z (all of them: args). A range is a list of rows. Trusted workbooks only",
+      "minArgs": 1,
+      "maxArgs": 255,
+      "timeoutMs": 30000
+    },
     {
       "name": "PY.VERSION",
       "signature": "PY.VERSION()",
-      "description": "The plugin and Python versions",
+      "description": "The add-in and Python versions",
       "minArgs": 0,
       "maxArgs": 0
     },
@@ -61,6 +87,56 @@
   ],
   "commands": [
     {
+      "id": "runScript",
+      "label": "Run Python Script",
+      "description": "Runs Python with `doc` (this document) and `x` (the selection); print() output and the last line's value show after it. One undo step. Trusted documents only",
+      "params": "{code? | file?, output?: show|below|sheet (GridCraft), timeout?: seconds} (no params: asks)"
+    },
+    {
+      "id": "runFile",
+      "label": "Run Python File",
+      "description": "Runs a .py file with `doc` and `x`. Trusted documents only",
+      "params": "{path} (no params: asks)"
+    },
+    {
+      "id": "console",
+      "label": "Python Console",
+      "description": "Evaluates Python in a workspace that keeps what you define, and shows the result. Trusted documents only",
+      "params": "{code?} (no params: asks) → result.output, result.value"
+    },
+    {
+      "id": "trust",
+      "label": "Trust This Document",
+      "description": "Turns Python on for the active document, after spelling out the risk"
+    },
+    {
+      "id": "trustConfirm",
+      "label": "Trust This Document (confirmed)",
+      "description": "Trusts the active document without asking (what Trust's OK runs)",
+      "params": "{path, name}: the active document's, as a check"
+    },
+    {
+      "id": "untrust",
+      "label": "Stop Trusting",
+      "description": "Turns Python off for the active document"
+    },
+    {
+      "id": "trusted",
+      "label": "Trusted Documents",
+      "description": "Lists the trusted documents, to take some off the list"
+    },
+    {
+      "id": "untrustPaths",
+      "label": "Remove Trusted Documents",
+      "description": "Takes documents off the trusted list",
+      "params": "{ids: [path, ...]}"
+    },
+    {
+      "id": "about",
+      "label": "About Python",
+      "description": "The add-in and Python versions, and whether Python is on for this document"
+    },
+    {
       "id": "titleCase",
       "label": "Title Case",
       "description": "Title-cases the text in the selection"
@@ -89,6 +165,60 @@
   ],
   "ui": {
     "ribbon": [
+      {
+        "tab": "Python",
+        "group": "Code",
+        "buttons": [
+          {
+            "command": "runScript",
+            "label": "Run Script…",
+            "icon": "script"
+          },
+          {
+            "command": "console",
+            "label": "Console…",
+            "icon": "calc"
+          },
+          {
+            "command": "runFile",
+            "label": "Run File…",
+            "size": "small",
+            "icon": "folder"
+          }
+        ]
+      },
+      {
+        "tab": "Python",
+        "group": "Trust",
+        "buttons": [
+          {
+            "command": "trust",
+            "label": "Trust This Workbook",
+            "icon": "lock"
+          },
+          {
+            "command": "untrust",
+            "size": "small",
+            "icon": "lock"
+          },
+          {
+            "command": "trusted",
+            "label": "Trusted Workbooks…",
+            "size": "small",
+            "icon": "settings"
+          }
+        ]
+      },
+      {
+        "tab": "Python",
+        "group": "About",
+        "buttons": [
+          {
+            "command": "about",
+            "icon": "info"
+          }
+        ]
+      },
       {
         "tab": "Python",
         "group": "Text",
@@ -142,6 +272,11 @@
     "menus": [
       {
         "menu": "cell",
+        "command": "runScript",
+        "label": "Run Python Script…"
+      },
+      {
+        "menu": "cell",
         "command": "trim"
       },
       {
@@ -157,8 +292,190 @@
     ]
   },
   "uiFor": {
+    "gridcraft": {
+      "ribbon": [
+        {
+          "tab": "Python",
+          "group": "Code",
+          "buttons": [
+            {
+              "command": "runScript",
+              "label": "Run Script…",
+              "icon": "script"
+            },
+            {
+              "command": "console",
+              "label": "Console…",
+              "icon": "calc"
+            },
+            {
+              "command": "runFile",
+              "label": "Run File…",
+              "size": "small",
+              "icon": "folder"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "Trust",
+          "buttons": [
+            {
+              "command": "trust",
+              "label": "Trust This Workbook",
+              "icon": "lock"
+            },
+            {
+              "command": "untrust",
+              "size": "small",
+              "icon": "lock"
+            },
+            {
+              "command": "trusted",
+              "label": "Trusted Workbooks…",
+              "size": "small",
+              "icon": "settings"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "About",
+          "buttons": [
+            {
+              "command": "about",
+              "icon": "info"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "Text",
+          "buttons": [
+            {
+              "command": "titleCase",
+              "icon": "format"
+            },
+            {
+              "command": "trim",
+              "icon": "pen"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "Numbers",
+          "buttons": [
+            {
+              "command": "statsTable",
+              "icon": "chartBar"
+            },
+            {
+              "command": "fillFibonacci",
+              "label": "Fibonacci 10",
+              "size": "small",
+              "icon": "sum"
+            },
+            {
+              "command": "fillFibonacci",
+              "label": "Fibonacci 30",
+              "size": "small",
+              "icon": "sum",
+              "params": {
+                "count": 30
+              }
+            }
+          ]
+        },
+        {
+          "tab": "Data",
+          "group": "Python",
+          "buttons": [
+            {
+              "command": "statsTable",
+              "icon": "chartBar"
+            }
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "menu": "cell",
+          "command": "runScript",
+          "label": "Run Python Script…"
+        },
+        {
+          "menu": "cell",
+          "command": "trim"
+        },
+        {
+          "menu": "cell",
+          "command": "statsTable",
+          "label": "Python Statistics"
+        },
+        {
+          "menu": "column",
+          "command": "titleCase",
+          "label": "Title Case Column"
+        }
+      ]
+    },
     "wordcraft": {
       "ribbon": [
+        {
+          "tab": "Python",
+          "group": "Code",
+          "buttons": [
+            {
+              "command": "runScript",
+              "label": "Run Script…",
+              "icon": "macros"
+            },
+            {
+              "command": "console",
+              "label": "Console…",
+              "icon": "editor"
+            },
+            {
+              "command": "runFile",
+              "label": "Run File…",
+              "size": "small",
+              "icon": "documentTemplate"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "Trust",
+          "buttons": [
+            {
+              "command": "trust",
+              "label": "Trust This Document",
+              "icon": "protect"
+            },
+            {
+              "command": "untrust",
+              "size": "small",
+              "icon": "protect"
+            },
+            {
+              "command": "trusted",
+              "label": "Trusted Documents…",
+              "size": "small",
+              "icon": "docPrefs"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "About",
+          "buttons": [
+            {
+              "command": "about",
+              "icon": "info"
+            }
+          ]
+        },
         {
           "tab": "Python",
           "group": "Text",
@@ -196,6 +513,10 @@
       ],
       "menus": [
         {
+          "command": "runScript",
+          "label": "Run Python Script…"
+        },
+        {
           "command": "trim"
         },
         {
@@ -203,6 +524,75 @@
           "label": "Python Text Statistics"
         }
       ]
+    },
+    "deckcraft": {
+      "ribbon": [
+        {
+          "tab": "Python",
+          "group": "Code",
+          "buttons": [
+            {
+              "command": "runScript",
+              "label": "Run Script…",
+              "icon": "script"
+            },
+            {
+              "command": "console",
+              "label": "Console…",
+              "icon": "play"
+            },
+            {
+              "command": "runFile",
+              "label": "Run File…",
+              "size": "small",
+              "icon": "open"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "Trust",
+          "buttons": [
+            {
+              "command": "trust",
+              "label": "Trust This Presentation",
+              "icon": "lock"
+            },
+            {
+              "command": "untrust",
+              "size": "small",
+              "icon": "lock"
+            },
+            {
+              "command": "trusted",
+              "label": "Trusted Presentations…",
+              "size": "small",
+              "icon": "settings"
+            }
+          ]
+        },
+        {
+          "tab": "Python",
+          "group": "About",
+          "buttons": [
+            {
+              "command": "about",
+              "icon": "info"
+            }
+          ]
+        },
+        {
+          "tab": "Review",
+          "group": "Python",
+          "buttons": [
+            {
+              "command": "textStats",
+              "icon": "search"
+            }
+          ]
+        }
+      ],
+      "menus": []
     }
   }
 }
