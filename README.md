@@ -19,7 +19,7 @@ imported by your scripts too.
 In the app, open **File › Options › Add-ins** (GridCraft also has **Automate › Add-ins**), paste
 
 ```
-sirmmo/gridcraft-python-plugin
+sirmmo/craft-python
 ```
 
 in **Install from GitHub** and confirm. The app takes the latest release's
@@ -30,7 +30,7 @@ or start the app with `--plugin <folder>`.
 From the command line:
 
 ```sh
-gridcraft-cli run --cmd 'plugins.install={"url":"sirmmo/gridcraft-python-plugin","dir":"'"$HOME"'/plugins"}'
+gridcraft-cli run --cmd 'plugins.install={"url":"sirmmo/craft-python","dir":"'"$HOME"'/plugins"}'
 gridcraft-cli --plugin ~/plugins/io.github.sirmmo.python eval '=PY.STATS(1,2,3,4)'
 ```
 

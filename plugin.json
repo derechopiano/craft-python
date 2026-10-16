@@ -4,7 +4,7 @@
   "version": "0.3.0",
   "description": "Python scripting for GridCraft, WordCraft and DeckCraft: scripts and a console that edit the open document through `doc`, Python in formulas (PY.EVAL) and ready-made helpers. Standard library only; needs python3 (3.8 or later).",
   "author": "Marco Montanari",
-  "homepage": "https://github.com/sirmmo/gridcraft-python-plugin",
+  "homepage": "https://github.com/sirmmo/craft-python",
   "apps": [
     "gridcraft",
     "wordcraft",
