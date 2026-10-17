@@ -1,0 +1,36 @@
+{
+  "id": "io.github.sirmmo.python.macros",
+  "name": "Python Workbook Macros (experimental)",
+  "version": "0.3.0",
+  "description": "Optional workbook macro role for Python Tools; requires the proposed GridCraft macro integration.",
+  "author": "Marco Montanari",
+  "homepage": "https://github.com/sirmmo/craft-python",
+  "apps": [
+    "gridcraft"
+  ],
+  "run": {
+    "command": "python3",
+    "args": [
+      "main.py",
+      "--workbook-macros"
+    ]
+  },
+  "functions": [],
+  "commands": [],
+  "ui": {},
+  "uiFor": {},
+  "macros": {
+    "language": "Python",
+    "recording": false,
+    "ribbonCallbacks": false
+  },
+  "requires": {
+    "protocol": ">=2.2",
+    "apps": {"gridcraft": ">=0.7.0"},
+    "features": [
+      "pythonProjects",
+      "engineCommands",
+      "literalValues"
+    ]
+  }
+}

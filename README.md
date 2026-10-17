@@ -357,3 +357,48 @@ apps' bridges, with the trust flow, time limits and malformed input), and
 ## Licence
 
 MIT
+
+
+## Experimental workbook-project role (GridCraft)
+
+This optional role adds the desktop workbook-project portion of
+[GridCraft #1566](https://github.com/storytold/gridcraft/issues/1566). It builds on
+craft-python 0.3.0 and preserves Run Script, Console, Run File, PY.EVAL, helpers,
+trust handling and WordCraft/DeckCraft support. It requires the companion host
+extension on top of [#1123](https://github.com/storytold/gridcraft/pull/1123).
+The ordinary released host does not support its proposed capabilities yet.
+
+Load `plugin-macros.json` explicitly, alongside the ordinary `plugin.json` when
+PY.* formulas are needed. Set `run.command` to the installed Python executable
+if `python3` is unavailable. Optional arguments are `--uv-executable`,
+`--python-interpreter` and `--macro-cache`. The separate role ID does not register
+duplicate functions or ribbon commands. Both modes use the existing App/Channel;
+only `--workbook-macros` imports the macro runtime.
+
+The shared host owns the editor, document trust, source persistence and one-step
+undo/rollback. This role implements the existing `macros/*` methods for validated
+multi-module projects. Discovery uses AST parsing without executing source. A
+macro is a public top-level synchronous function with no arguments, addressed as
+`analysis.run`. It can import other project modules and use
+`import gridcraft as gc; wb = gc.active_workbook()` for `wb.read`, `wb.cell`,
+`wb.inspect`, literal `wb.write` and explicit `wb.execute` calls.
+
+uv prepares the project's PEP 723 environment offline by default. The host's
+Python Settings can explicitly approve downloads for the current document and
+exact metadata, separately from workbook contents. Source builds and unrelated
+uv configuration remain disabled. Ordinary craft-python never starts this worker.
+A successful worker stays warm for the same document/source, retires after 60
+idle seconds, and restarts after changes or errors. Startup/run have an absolute
+30-second budget, messages a 16 MiB limit, diagnostics an 8 KiB limit. Windows
+kill-on-close jobs and POSIX process groups own worker descendants; specific
+POSIX descendant verification remains outstanding. These are trusted programs
+with the user's OS permissions, not a sandbox.
+
+The host supplies Run/Stop and restores workbook changes on failure; external
+Python side effects cannot be rolled back. Form controls, Pyodide, richer output
+and language tooling remain future phases. This is not a replacement for the
+existing scripting UI, Excel's Python formulas, or the Python-in-cells PR #469.
+
+Run the full provider suite with `python -m unittest discover -s tests -v`.
+Native host integration in the companion GridCraft branch additionally tests
+real uv startup, warm reuse, Stop-after-write rollback and PY.TWICE recalculation.

@@ -21,7 +21,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: plugin.json is JSON
-        run: python -m json.tool plugin.json >/dev/null
+        run: |
+          python -m json.tool plugin.json >/dev/null
+          python -m json.tool plugin-macros.json >/dev/null
       - name: The versions agree
         run: |
           python - <<'PY'

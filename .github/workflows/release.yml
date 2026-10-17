@@ -31,7 +31,7 @@ jobs:
             exit 1
           fi
           mkdir -p dist/craft-python/craftpython
-          cp plugin.json main.py README.md LICENSE dist/craft-python/
+          cp plugin.json plugin-macros.json main.py README.md LICENSE dist/craft-python/
           cp craftpython/*.py dist/craft-python/craftpython/
           (cd dist && zip -qr "craft-python-$version.zip" craft-python)
       - name: Publish

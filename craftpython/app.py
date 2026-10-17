@@ -112,9 +112,9 @@ class App:
         self.channel.send(reply)
 
 
-def main():
+def main(app_factory=App):
     runner.install()
-    app = App(Channel())
+    app = app_factory(Channel())
     while not app.channel.shutdown:
         try:
             msg = app.channel.read()
