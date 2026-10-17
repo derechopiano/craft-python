@@ -390,8 +390,10 @@ uv configuration remain disabled. Ordinary craft-python never starts this worker
 A successful worker stays warm for the same document/source, retires after 60
 idle seconds, and restarts after changes or errors. Startup/run have an absolute
 30-second budget, messages a 16 MiB limit, diagnostics an 8 KiB limit. Windows
-kill-on-close jobs and POSIX process groups own worker descendants; specific
-POSIX descendant verification remains outstanding. These are trusted programs
+kill-on-close jobs own worker descendants. On POSIX, a small helper blocks on an
+owned pipe and kills the worker process group when the provider closes or dies;
+it uses no polling and retires with the worker. Platform regressions cover forced
+shutdown, a normal interpreter exit and abrupt provider death. These are trusted programs
 with the user's OS permissions, not a sandbox.
 
 The host supplies Run/Stop and restores workbook changes on failure; external

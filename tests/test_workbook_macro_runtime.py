@@ -214,8 +214,9 @@ class WindowsWorkerTree(unittest.TestCase):
                   "child.stdin.write('\\n'); child.stdin.flush()\n"
                   "print(json.dumps(runtime.receive(child, time.monotonic()+5)), flush=True)\n"
                   "time.sleep(60)\n")
+        options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
         owner = subprocess.Popen([sys.executable, '-u', '-c', source], stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                                 stderr=subprocess.PIPE, text=True, **options)
         lines = queue.Queue(maxsize=1)
         reader = threading.Thread(target=lambda: lines.put(owner.stdout.readline()), daemon=True)
         reader.start()
@@ -231,6 +232,56 @@ class WindowsWorkerTree(unittest.TestCase):
             owner.wait(timeout=5)
             reader.join(timeout=1)
             owner.stdout.close(); owner.stderr.close()
+
+
+@unittest.skipUnless(os.name == 'posix', 'POSIX process-group ownership')
+class PosixWorkerTree(unittest.TestCase):
+    spawn_source = staticmethod(WindowsWorkerTree.spawn_source)
+    test_killing_worker_also_kills_its_descendant = WindowsWorkerTree.test_killing_worker_also_kills_its_descendant
+    test_normal_worker_exit_does_not_leave_descendant_holding_pipes = WindowsWorkerTree.test_normal_worker_exit_does_not_leave_descendant_holding_pipes
+    test_provider_crash_closes_owned_worker_tree = WindowsWorkerTree.test_provider_crash_closes_owned_worker_tree
+
+    def watch(self, pid):
+        import pathlib
+
+        def alive():
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                return False
+            # Linux can leave a killed orphan as a zombie briefly before init reaps it.
+            # It is already stopped and has released its pipes. Other POSIX hosts reap it.
+            try:
+                state = pathlib.Path('/proc/{}/stat'.format(pid)).read_text().rsplit(')', 1)[1].split()[0]
+                if state == 'Z':
+                    return False
+            except (OSError, IndexError):
+                pass
+            return True
+
+        self.assertTrue(alive(), 'fixture descendant should still be alive')
+        group = os.getpgid(pid)
+        self.assertNotEqual(group, os.getpgrp(), 'fixture must own a separate process group')
+
+        def cleanup():
+            try:
+                if alive() and os.getpgid(pid) == group:
+                    os.killpg(group, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+
+        import signal
+        self.addCleanup(cleanup)
+
+        def wait(ms):
+            deadline = time.monotonic() + ms / 1000
+            while alive():
+                if time.monotonic() >= deadline:
+                    return 258
+                time.sleep(0.01)
+            return 0
+
+        return wait
 
 
 class DownloadPolicy(unittest.TestCase):

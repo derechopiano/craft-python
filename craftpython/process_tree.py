@@ -1,27 +1,64 @@
 """Own only this macro worker's process group; no process-name scans or global kills."""
 import os
 import signal
+import subprocess
+import sys
+
+# The provider is the sole writer of this pipe. EOF also arrives after SIGKILL/crash, when
+# Python finally blocks cannot run. The helper stays outside the worker's process group and
+# sleeps in the kernel until needed; user modules never inherit the write end.
+_GROUP_OWNER = """
+import os, signal, sys
+try:
+    sys.stdin.buffer.read()
+finally:
+    try:
+        os.killpg(int(sys.argv[1]), signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+"""
 
 
 class ProcessTree:
     def __init__(self):
         self.process = None
+        self.owner = None
         self.job = _WindowsJob() if os.name == 'nt' else None
 
     def attach(self, process):
         self.process = process
         if self.job is not None:
             self.job.attach(process.pid)
+        else:
+            self.owner = subprocess.Popen([sys.executable, '-c', _GROUP_OWNER, str(process.pid)],
+                                          stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
+                                          stderr=subprocess.DEVNULL, close_fds=True)
 
     def close(self):
         if self.job is not None:
             self.job.close()
         elif self.process is not None:
             try:
-                os.killpg(self.process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            self.process = None
+                if self.owner is not None:
+                    self.owner.stdin.close()
+                    try:
+                        if self.owner.wait(timeout=5) != 0:
+                            self._kill_group()
+                    except subprocess.TimeoutExpired:
+                        self._kill_group()
+                        self.owner.kill()
+                        self.owner.wait(timeout=5)
+                else:
+                    self._kill_group()  # Failed ownership setup still cleans its new session.
+            finally:
+                self.owner = None
+                self.process = None
+
+    def _kill_group(self):
+        try:
+            os.killpg(self.process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
 
 
 if os.name == 'nt':
